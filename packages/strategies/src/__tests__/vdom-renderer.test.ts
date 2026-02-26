@@ -1,0 +1,56 @@
+import { describe, it, expect } from 'vitest';
+import { vdomRenderer } from '../vdom-renderer/index';
+
+describe('vdomRenderer strategy', () => {
+  it('should implement Renderer protocol', () => {
+    const renderer = vdomRenderer();
+    expect(renderer.createView).toBeTypeOf('function');
+    expect(renderer.mount).toBeTypeOf('function');
+    expect(renderer.update).toBeTypeOf('function');
+    expect(renderer.unmount).toBeTypeOf('function');
+  });
+
+  it('h() should create VNodes', () => {
+    const renderer = vdomRenderer();
+    const vnode = renderer.h('div', { id: 'app' }, renderer.h('span', null, 'hi'));
+    expect(vnode.tag).toBe('div');
+    expect(vnode.props).toEqual({ id: 'app' });
+  });
+
+  it('should mount a render function', () => {
+    const renderer = vdomRenderer();
+    const container = document.createElement('div');
+
+    const view = renderer.createViewFromFn(() => renderer.h('p', null, 'hello'));
+    const handle = renderer.mount(view, container);
+
+    expect(container.innerHTML).toBe('<p>hello</p>');
+    expect(handle.container).toBe(container);
+  });
+
+  it('should update on re-render', () => {
+    const renderer = vdomRenderer();
+    const container = document.createElement('div');
+    let text = 'old';
+
+    const view = renderer.createViewFromFn(() => renderer.h('p', null, text));
+    const handle = renderer.mount(view, container);
+    expect(container.innerHTML).toBe('<p>old</p>');
+
+    text = 'new';
+    renderer.update(handle);
+    expect(container.innerHTML).toBe('<p>new</p>');
+  });
+
+  it('should unmount', () => {
+    const renderer = vdomRenderer();
+    const container = document.createElement('div');
+
+    const view = renderer.createViewFromFn(() => renderer.h('div', null, 'bye'));
+    const handle = renderer.mount(view, container);
+    expect(container.innerHTML).toBe('<div>bye</div>');
+
+    renderer.unmount(handle);
+    expect(container.innerHTML).toBe('');
+  });
+});
