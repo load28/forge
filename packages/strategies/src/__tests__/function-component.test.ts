@@ -73,4 +73,104 @@ describe('functionComponent strategy', () => {
     const key = { _brand: Symbol('missing') } as any;
     expect(() => cs.inject(key)).toThrow('Context not found');
   });
+
+  // A-FC-1: Tree-scoped context tests
+  it('should scope context to component tree (child sees parent context)', () => {
+    const cs = functionComponent();
+    const themeKey = { _brand: Symbol('theme') } as any;
+
+    // Parent provides 'dark'
+    const parentHandle = cs.define(() => {
+      cs.provide(themeKey, 'dark');
+
+      // Child instantiated during parent factory should see parent's context
+      const childHandle = cs.define(() => {
+        const theme = cs.inject(themeKey);
+        return () => theme;
+      });
+      const child = cs.instantiate(childHandle, {});
+      expect(child.render()).toBe('dark');
+
+      return () => 'parent';
+    });
+
+    cs.instantiate(parentHandle, {});
+  });
+
+  it('should allow child to override parent context', () => {
+    const cs = functionComponent();
+    const themeKey = { _brand: Symbol('theme') } as any;
+
+    const parentHandle = cs.define(() => {
+      cs.provide(themeKey, 'dark');
+
+      // Child overrides with 'light'
+      const childHandle = cs.define(() => {
+        cs.provide(themeKey, 'light');
+        const theme = cs.inject(themeKey);
+        return () => theme;
+      });
+      const child = cs.instantiate(childHandle, {});
+      expect(child.render()).toBe('light');
+
+      // Parent still sees 'dark'
+      expect(cs.inject(themeKey)).toBe('dark');
+
+      return () => 'parent';
+    });
+
+    cs.instantiate(parentHandle, {});
+  });
+
+  it('should isolate sibling component contexts', () => {
+    const cs = functionComponent();
+    const key = { _brand: Symbol('data') } as any;
+
+    // Sibling A provides 'A' and captures the value during instantiation
+    let sibAValue: string | undefined;
+    const sibAHandle = cs.define(() => {
+      cs.provide(key, 'A');
+      sibAValue = cs.inject(key);
+      return () => sibAValue;
+    });
+
+    // Sibling B should not see A's value — captures fallback during instantiation
+    let sibBValue: string | undefined;
+    const sibBHandle = cs.define(() => {
+      sibBValue = cs.inject(key, 'fallback');
+      return () => sibBValue;
+    });
+
+    cs.instantiate(sibAHandle, {});
+    expect(sibAValue).toBe('A');
+
+    cs.instantiate(sibBHandle, {});
+    expect(sibBValue).toBe('fallback');
+  });
+
+  // BUG-15: Nested instantiation hook context
+  it('should not corrupt hooks in nested component instantiation', () => {
+    const cs = functionComponent();
+    const outerDetach = vi.fn();
+    const innerDetach = vi.fn();
+
+    const innerHandle = cs.define(() => {
+      cs.onDetach(innerDetach);
+      return () => 'inner';
+    });
+
+    const outerHandle = cs.define(() => {
+      cs.onDetach(outerDetach);
+      // Nested instantiation
+      const inner = cs.instantiate(innerHandle, {});
+      return () => 'outer';
+    });
+
+    const outer = cs.instantiate(outerHandle, {});
+
+    // Only outer's detach should run
+    outer.detach();
+    expect(outerDetach).toHaveBeenCalledTimes(1);
+    expect(innerDetach).not.toHaveBeenCalled();
+  });
 });

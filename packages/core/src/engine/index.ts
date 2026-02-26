@@ -1,1 +1,1 @@
-export { createFramework, type Framework, type FrameworkConfig } from './create-framework';
+export { createFramework, type Framework, type FrameworkConfig, type FrameworkPlugin } from './create-framework';

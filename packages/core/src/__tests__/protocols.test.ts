@@ -28,6 +28,7 @@ describe('Protocol types', () => {
     expectTypeOf<VDOMRenderer>().toHaveProperty('createView');
     expectTypeOf<VDOMRenderer>().toHaveProperty('mount');
     expectTypeOf<VDOMRenderer>().toHaveProperty('update');
+    expectTypeOf<VDOMRenderer>().toHaveProperty('replace');
     expectTypeOf<VDOMRenderer>().toHaveProperty('unmount');
   });
 

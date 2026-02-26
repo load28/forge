@@ -53,4 +53,20 @@ describe('hashRouter strategy', () => {
     expect(match.matched).toBe(false);
     router.destroy();
   });
+
+  // DX-2: Navigation guard tests
+  it('should support beforeEach navigation guard', () => {
+    const router = hashRouter();
+    expect(router.beforeEach).toBeTypeOf('function');
+    router.destroy();
+  });
+
+  it('should allow disposing a navigation guard', () => {
+    const router = hashRouter();
+    const guard = vi.fn(() => true);
+    const disposable = router.beforeEach(guard as any);
+    expect(disposable.dispose).toBeTypeOf('function');
+    disposable.dispose();
+    router.destroy();
+  });
 });

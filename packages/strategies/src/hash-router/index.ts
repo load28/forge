@@ -1,9 +1,15 @@
 import type { Router, Disposable } from '@forge/core';
-import { createHashListener, matchPath } from '@forge/primitives';
+import { createHashListener, compilePath, matchCompiled, type CompiledRoute } from '@forge/primitives';
 
 interface RouteDefinition {
   path: string;
   name?: string;
+}
+
+/** Internal entry pairing a route definition with its pre-compiled regex. */
+interface CompiledRouteEntry {
+  def: RouteDefinition;
+  compiled: CompiledRoute;
 }
 
 export interface HashRouteMatch {
@@ -13,33 +19,69 @@ export interface HashRouteMatch {
   path: string;
 }
 
+/**
+ * DX-2: Navigation guard callback.
+ * Return `false` to cancel the navigation, or a string to redirect.
+ *
+ * Based on Vue Router's navigation guards pattern:
+ * See: https://router.vuejs.org/guide/advanced/navigation-guards.html
+ */
+export type NavigationGuard = (
+  to: HashRouteMatch,
+  from: HashRouteMatch,
+) => boolean | string | void;
+
 export interface HashRouter extends Router<HashRouteMatch> {
   destroy(): void;
+  /** DX-2: Register a navigation guard that runs before each route change */
+  beforeEach(guard: NavigationGuard): Disposable;
 }
 
 export function hashRouter(): HashRouter {
   const listener = createHashListener();
-  const routes: RouteDefinition[] = [];
+  const routes: CompiledRouteEntry[] = [];
   const callbacks = new Set<(match: HashRouteMatch) => void>();
+  const guards: NavigationGuard[] = [];
+  let lastMatch: HashRouteMatch = { matched: false, params: {}, path: '' };
 
   function resolve(path: string): HashRouteMatch {
-    for (const route of routes) {
-      const result = matchPath(route.path, path);
+    for (const entry of routes) {
+      const result = matchCompiled(entry.compiled, path);
       if (result.matched) {
-        return { matched: true, route, params: result.params ?? {}, path };
+        return { matched: true, route: entry.def, params: result.params ?? {}, path };
       }
     }
     return { matched: false, params: {}, path };
   }
 
+  /** DX-2: Run all navigation guards. Returns final destination or null to cancel. */
+  function runGuards(to: HashRouteMatch, from: HashRouteMatch): HashRouteMatch | null {
+    for (const guard of guards) {
+      const result = guard(to, from);
+      if (result === false) return null; // Cancel navigation
+      if (typeof result === 'string') {
+        // Redirect — resolve the new path
+        return resolve(result);
+      }
+    }
+    return to;
+  }
+
   listener.onChange((path) => {
-    const match = resolve(path);
-    for (const cb of callbacks) cb(match);
+    const to = resolve(path);
+    const finalMatch = runGuards(to, lastMatch);
+    if (finalMatch === null) return; // Navigation cancelled
+
+    lastMatch = finalMatch;
+    const snapshot = [...callbacks];
+    for (const cb of snapshot) cb(finalMatch);
   });
 
   return {
     current() {
-      return resolve(listener.getPath());
+      const match = resolve(listener.getPath());
+      lastMatch = match;
+      return match;
     },
     onChange(callback) {
       callbacks.add(callback);
@@ -50,15 +92,27 @@ export function hashRouter(): HashRouter {
     },
     register(definition) {
       const def = definition as RouteDefinition;
-      routes.push(def);
+      const entry: CompiledRouteEntry = { def, compiled: compilePath(def.path) };
+      routes.push(entry);
       return { dispose: () => {
-        const idx = routes.indexOf(def);
+        const idx = routes.indexOf(entry);
         if (idx >= 0) routes.splice(idx, 1);
       }};
     },
     destroy() {
       listener.destroy();
       callbacks.clear();
+      routes.length = 0;
+      guards.length = 0;
+    },
+    beforeEach(guard: NavigationGuard): Disposable {
+      guards.push(guard);
+      return {
+        dispose: () => {
+          const idx = guards.indexOf(guard);
+          if (idx >= 0) guards.splice(idx, 1);
+        },
+      };
     },
   };
 }
