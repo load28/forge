@@ -1,0 +1,17 @@
+{
+  "name": "@forge/demo-direct-dom",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "src/index.tsx",
+  "types": "src/index.tsx",
+  "scripts": {
+    "dev": "bunx vite"
+  },
+  "dependencies": {
+    "@forge/core": "workspace:*",
+    "@forge/strategies": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

@@ -100,7 +100,11 @@ export function createFramework(config: FrameworkConfig): Framework {
     let mountHandle: MountHandle | null = null;
     let currentDisposable: Disposable | null = null;
 
-    // Initial mount inside autorun for reactive tracking
+    // Initial mount inside autorun for reactive tracking.
+    // For VDOM renderer: autorun re-triggers on signal changes, calling update() to re-render & diff.
+    // For Direct DOM renderer: mount() uses untracked() internally and update() is a no-op,
+    // so this autorun fires once for mount and never re-triggers. Fine-grained effects
+    // created during render handle their own tracking independently.
     currentDisposable = reactive.autorun(() => {
       if (!mountHandle) {
         mountHandle = renderer.mount(view, container);
@@ -129,7 +133,8 @@ export function createFramework(config: FrameworkConfig): Framework {
         }
         const newView = renderer.createView(newCompHandle, newProps);
         mountHandle = renderer.replace(mountHandle!, newView);
-        // Re-establish reactive tracking for new component's signals
+        // Re-establish reactive tracking for new component's signals.
+        // (For Direct DOM renderer this is effectively a no-op — see note above.)
         currentDisposable = reactive.autorun(() => {
           renderer.update(mountHandle!);
         });

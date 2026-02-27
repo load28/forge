@@ -4,3 +4,4 @@ export { h, Fragment, registerFactory } from './expression/factory';
 export { hashRouter, type HashRouter, type HashRouteMatch } from './hash-router/index';
 export { functionComponent, type FnComponentSystem } from './function-component/index';
 export { routerView, type RouteComponent } from './router-view/index';
+export { directDomRenderer, type DirectDOMRenderer, type DirectDOMView } from './direct-dom-renderer/index';
