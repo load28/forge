@@ -11,9 +11,19 @@ export class BatchQueue {
       if (this.depth === 0) {
         const fns = [...this.pending];
         this.pending.clear();
+        let firstError: unknown;
         for (const f of fns) {
-          try { f(); } catch (e) { console.error('Error in batched callback:', e); }
+          try { f(); } catch (e) {
+            if (firstError === undefined) {
+              firstError = e;
+            } else {
+              // P4: Log subsequent errors so they aren't silently lost
+              console.error('Forge: additional error during batch flush:', e);
+            }
+          }
         }
+        // P4: Re-throw the first error after all callbacks run
+        if (firstError !== undefined) throw firstError;
       }
     }
   }

@@ -212,6 +212,26 @@ describe('signalReactive strategy', () => {
     expect(c5.get()).toBe(15); // 10+1+1+1+1+1
   });
 
+  // P4: Flush loop should throw instead of silently dropping
+  it('should throw Error when flush loop exceeds maximum iterations', () => {
+    const reactive = signalReactive();
+    const a = reactive.signal(0);
+    const b = reactive.signal(0);
+
+    // Set up two effects that mutually trigger each other
+    reactive.autorun(() => {
+      b.set(a.get() + 1);
+    });
+    reactive.autorun(() => {
+      a.set(b.get() + 1);
+    });
+
+    // External trigger starts the infinite cascade: a→effect1→b→effect2→a→...
+    expect(() => {
+      a.set(100);
+    }).toThrow('flush loop exceeded maximum iterations');
+  });
+
   // Batch should not expose intermediate computed states
   it('batch should not expose intermediate computed states', () => {
     const reactive = signalReactive();

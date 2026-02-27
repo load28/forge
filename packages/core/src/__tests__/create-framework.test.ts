@@ -127,6 +127,22 @@ describe('createFramework', () => {
     expect(installFn).toHaveBeenCalledWith(fw);
   });
 
+  // P7: Duplicate plugin registration guard
+  it('should skip duplicate plugin registration by name', () => {
+    const fw = createFramework({
+      reactive: mockReactive(),
+      renderer: mockRenderer(),
+      component: mockComponent(),
+    });
+
+    const installFn = vi.fn();
+    fw.use({ name: 'dup-plugin', install: installFn });
+    fw.use({ name: 'dup-plugin', install: installFn });
+
+    // install should only be called once
+    expect(installFn).toHaveBeenCalledTimes(1);
+  });
+
   it('should support runtime plugin registration via use()', () => {
     const fw = createFramework({
       reactive: mockReactive(),
@@ -221,6 +237,54 @@ describe('createFramework', () => {
     viewHandle.replace(() => 'new');
 
     expect(renderer.replace).toHaveBeenCalled();
+  });
+
+  // P2: createView should instantiate component for lifecycle hooks
+  it('createView should call component.instantiate', () => {
+    const comp = mockComponent();
+    const fw = createFramework({
+      reactive: mockReactive(),
+      renderer: mockRenderer(),
+      component: comp,
+    });
+
+    const container = document.createElement('div');
+    fw.createView(container, () => 'test', { name: 'test' });
+
+    expect(comp.instantiate).toHaveBeenCalled();
+  });
+
+  it('createView destroy should call component.destroy', () => {
+    const comp = mockComponent();
+    const fw = createFramework({
+      reactive: mockReactive(),
+      renderer: mockRenderer(),
+      component: comp,
+    });
+
+    const container = document.createElement('div');
+    const viewHandle = fw.createView(container, () => 'test');
+    viewHandle.destroy();
+
+    expect(comp.destroy).toHaveBeenCalled();
+  });
+
+  it('createView replace should destroy old and instantiate new component', () => {
+    const comp = mockComponent();
+    const fw = createFramework({
+      reactive: mockReactive(),
+      renderer: mockRenderer(),
+      component: comp,
+    });
+
+    const container = document.createElement('div');
+    const viewHandle = fw.createView(container, () => 'old');
+    viewHandle.replace(() => 'new');
+
+    // define called twice (old + new), instantiate called twice, destroy called once (old)
+    expect(comp.define).toHaveBeenCalledTimes(2);
+    expect(comp.instantiate).toHaveBeenCalledTimes(2);
+    expect(comp.destroy).toHaveBeenCalledTimes(1);
   });
 
   it('viewHandle.destroy should delegate to renderer.unmount', () => {

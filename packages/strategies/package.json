@@ -4,6 +4,11 @@
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./jsx-runtime": "./src/vdom-renderer/jsx-runtime.ts",
+    "./jsx-dev-runtime": "./src/vdom-renderer/jsx-dev-runtime.ts"
+  },
   "dependencies": {
     "@forge/core": "workspace:*",
     "@forge/primitives": "workspace:*"

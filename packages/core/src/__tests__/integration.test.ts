@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { signalReactive } from '@forge/strategies';
-import { vdomRenderer } from '@forge/strategies';
-import { functionComponent } from '@forge/strategies';
+import { signalReactive, vdomRenderer, functionComponent, h } from '@forge/strategies';
 
 describe('Forge integration', () => {
   it('should render a component via composed strategies', () => {
@@ -10,7 +8,7 @@ describe('Forge integration', () => {
     const component = functionComponent();
 
     const handle = component.define((props: any) => {
-      return () => renderer.h('div', null, 'Hello ' + props.name);
+      return () => h('div', null, 'Hello ' + props.name);
     });
 
     const instance = component.instantiate(handle, { name: 'Forge' });
@@ -30,7 +28,7 @@ describe('Forge integration', () => {
     const container = document.createElement('div');
 
     const view = renderer.createViewFromFn(() =>
-      renderer.h('span', null, 'count: ' + count.get())
+      h('span', null, 'count: ' + count.get())
     );
     const handle = renderer.mount(view, container);
 
@@ -59,7 +57,7 @@ describe('Forge integration', () => {
         return () => logs.push('cleanup');
       });
       component.onDetach(() => logs.push('detached'));
-      return () => renderer.h('p', null, 'lifecycle');
+      return () => h('p', null, 'lifecycle');
     });
 
     const instance = component.instantiate(handle, {});
@@ -78,7 +76,7 @@ describe('Forge integration', () => {
     const name = reactive.signal('World');
 
     const handle = component.define((props: any) => {
-      return () => renderer.h('h1', null, 'Hello ' + name.get());
+      return () => h('h1', null, 'Hello ' + name.get());
     });
 
     const instance = component.instantiate(handle, {});

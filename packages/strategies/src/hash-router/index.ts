@@ -67,11 +67,33 @@ export function hashRouter(): HashRouter {
     return to;
   }
 
+  let redirectDepth = 0;
+  const MAX_REDIRECTS = 10;
+
   listener.onChange((path) => {
     const to = resolve(path);
     const finalMatch = runGuards(to, lastMatch);
-    if (finalMatch === null) return; // Navigation cancelled
 
+    // P3: Guard cancellation — revert URL to previous path
+    if (finalMatch === null) {
+      if (lastMatch.path) {
+        listener.setPath(lastMatch.path);
+      }
+      return;
+    }
+
+    // P3: Redirect detection — sync URL to final destination
+    if (finalMatch.path !== to.path) {
+      if (++redirectDepth > MAX_REDIRECTS) {
+        console.error('Forge: maximum redirect depth exceeded');
+        redirectDepth = 0;
+        return;
+      }
+      listener.setPath(finalMatch.path);
+      return; // setPath triggers hashchange → re-enters with correct path
+    }
+
+    redirectDepth = 0;
     lastMatch = finalMatch;
     const snapshot = [...callbacks];
     for (const cb of snapshot) cb(finalMatch);

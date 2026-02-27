@@ -239,16 +239,62 @@ function createEl(vnode: VNode, isSvg = false): Node {
 export function mount(vnode: VNode, container: Element): void {
   const el = createEl(vnode);
   container.appendChild(el);
+  // P1: Track real parent for Fragment VNodes — DocumentFragment empties on appendChild
+  if (vnode.tag === Fragment) {
+    vnode._parentEl = container;
+  }
 }
 
 export function unmount(vnode: VNode): void {
+  // P1: Fragment unmount — remove tracked child nodes since DocumentFragment is empty
+  if (vnode.tag === Fragment) {
+    const childEls = childNodesMap.get(vnode);
+    if (childEls) {
+      for (const child of childEls) {
+        child.parentNode?.removeChild(child);
+      }
+    }
+    return;
+  }
   vnode.el?.parentNode?.removeChild(vnode.el);
 }
 
 export function patch(oldVNode: VNode, newVNode: VNode, container: Element): void {
   if (oldVNode.tag !== newVNode.tag) {
-    const newEl = createEl(newVNode);
-    oldVNode.el!.parentNode!.replaceChild(newEl, oldVNode.el!);
+    // P1: Handle Fragment↔non-Fragment tag changes
+    if (oldVNode.tag === Fragment) {
+      // Fragment → Element: remove old fragment children, mount new element
+      const parent = oldVNode._parentEl ?? container;
+      const childEls = childNodesMap.get(oldVNode);
+      const anchor = childEls?.[0] ?? null;
+      const newEl = createEl(newVNode);
+      parent.insertBefore(newEl, anchor);
+      if (childEls) {
+        for (const child of childEls) {
+          child.parentNode?.removeChild(child);
+        }
+      }
+    } else if (newVNode.tag === Fragment) {
+      // Element → Fragment: replace old element with new fragment children
+      const parent = oldVNode.el!.parentNode as Element ?? container;
+      const newEl = createEl(newVNode);
+      newVNode._parentEl = parent;
+      parent.insertBefore(newEl, oldVNode.el!);
+      parent.removeChild(oldVNode.el!);
+    } else {
+      const newEl = createEl(newVNode);
+      oldVNode.el!.parentNode!.replaceChild(newEl, oldVNode.el!);
+    }
+    return;
+  }
+
+  // P1: Fragment patch — use real parent instead of empty DocumentFragment
+  if (oldVNode.tag === Fragment) {
+    const parent = oldVNode._parentEl ?? container;
+    newVNode.el = oldVNode.el;
+    newVNode._parentEl = parent;
+    const newChildEls = patchChildren(oldVNode, newVNode, parent);
+    childNodesMap.set(newVNode, newChildEls);
     return;
   }
 
@@ -479,9 +525,12 @@ export interface DocumentLike {
  *   import { createDomPatcher } from '@forge/primitives';
  *   const { mount, patch, unmount } = createDomPatcher(ssrDocument);
  */
-export function createDomPatcher(_doc: DocumentLike) {
-  // Reserved for future SSR implementation.
-  // Currently returns the module-level functions which use globalThis.document.
-  // Full implementation would thread `_doc` through createEl/patchChildren.
+export function createDomPatcher(doc: DocumentLike) {
+  // P6: Warn that the provided document is not yet used
+  void doc;
+  console.warn(
+    'Forge: createDomPatcher does not yet use the provided document. ' +
+    'DOM operations will use globalThis.document.'
+  );
   return { mount, patch, unmount };
 }

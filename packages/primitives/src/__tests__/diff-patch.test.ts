@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { h, Fragment } from '../dom/vnode';
-import { mount, patch } from '../dom/patch';
+import { createVNode as h, Fragment } from '../dom/vnode';
+import { mount, patch, unmount } from '../dom/patch';
 
 describe('mount', () => {
   it('should mount text', () => {
@@ -219,6 +219,64 @@ describe('patch', () => {
     const container = document.createElement('div');
     mount(h(Fragment, null, 'hello', ' ', 'world'), container);
     expect(container.textContent).toBe('hello world');
+  });
+
+  // P1: Fragment patch — children should update correctly after mount
+  it('should patch Fragment children after mount', () => {
+    const container = document.createElement('div');
+    const old = h(Fragment, null, h('span', null, 'a'), h('span', null, 'b'));
+    mount(old, container);
+    expect(container.innerHTML).toBe('<span>a</span><span>b</span>');
+
+    const next = h(Fragment, null, h('span', null, 'x'), h('span', null, 'y'));
+    patch(old, next, container);
+    expect(container.innerHTML).toBe('<span>x</span><span>y</span>');
+  });
+
+  it('should patch Fragment with added/removed children', () => {
+    const container = document.createElement('div');
+    const old = h(Fragment, null, h('p', null, '1'));
+    mount(old, container);
+    expect(container.innerHTML).toBe('<p>1</p>');
+
+    const next = h(Fragment, null, h('p', null, '1'), h('p', null, '2'));
+    patch(old, next, container);
+    expect(container.innerHTML).toBe('<p>1</p><p>2</p>');
+  });
+
+  // P1: Fragment unmount should remove child nodes
+  it('should unmount Fragment children', () => {
+    const container = document.createElement('div');
+    const vnode = h(Fragment, null, h('span', null, 'a'), h('span', null, 'b'));
+    mount(vnode, container);
+    expect(container.innerHTML).toBe('<span>a</span><span>b</span>');
+
+    unmount(vnode);
+    expect(container.innerHTML).toBe('');
+  });
+
+  // P1: Fragment → Element tag change
+  it('should handle Fragment to element tag change', () => {
+    const container = document.createElement('div');
+    const old = h(Fragment, null, h('span', null, 'a'), h('span', null, 'b'));
+    mount(old, container);
+    expect(container.innerHTML).toBe('<span>a</span><span>b</span>');
+
+    const next = h('div', null, 'replaced');
+    patch(old, next, container);
+    expect(container.innerHTML).toBe('<div>replaced</div>');
+  });
+
+  // P1: Element → Fragment tag change
+  it('should handle element to Fragment tag change', () => {
+    const container = document.createElement('div');
+    const old = h('div', null, 'original');
+    mount(old, container);
+    expect(container.innerHTML).toBe('<div>original</div>');
+
+    const next = h(Fragment, null, h('span', null, 'a'), h('span', null, 'b'));
+    patch(old, next, container);
+    expect(container.innerHTML).toBe('<span>a</span><span>b</span>');
   });
 
   // TC-04: ref callback

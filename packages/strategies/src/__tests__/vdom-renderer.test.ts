@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { vdomRenderer } from '../vdom-renderer/index';
+import { vdomRenderer, h } from '../vdom-renderer/index';
 
 describe('vdomRenderer strategy', () => {
   it('should implement Renderer protocol', () => {
@@ -12,8 +12,7 @@ describe('vdomRenderer strategy', () => {
   });
 
   it('h() should create VNodes', () => {
-    const renderer = vdomRenderer();
-    const vnode = renderer.h('div', { id: 'app' }, renderer.h('span', null, 'hi'));
+    const vnode = h('div', { id: 'app' }, h('span', null, 'hi'));
     expect(vnode.tag).toBe('div');
     expect(vnode.props).toEqual({ id: 'app' });
   });
@@ -22,7 +21,7 @@ describe('vdomRenderer strategy', () => {
     const renderer = vdomRenderer();
     const container = document.createElement('div');
 
-    const view = renderer.createViewFromFn(() => renderer.h('p', null, 'hello'));
+    const view = renderer.createViewFromFn(() => h('p', null, 'hello'));
     const handle = renderer.mount(view, container);
 
     expect(container.innerHTML).toBe('<p>hello</p>');
@@ -34,7 +33,7 @@ describe('vdomRenderer strategy', () => {
     const container = document.createElement('div');
     let text = 'old';
 
-    const view = renderer.createViewFromFn(() => renderer.h('p', null, text));
+    const view = renderer.createViewFromFn(() => h('p', null, text));
     const handle = renderer.mount(view, container);
     expect(container.innerHTML).toBe('<p>old</p>');
 
@@ -47,11 +46,11 @@ describe('vdomRenderer strategy', () => {
     const renderer = vdomRenderer();
     const container = document.createElement('div');
 
-    const view1 = renderer.createViewFromFn(() => renderer.h('p', null, 'old'));
+    const view1 = renderer.createViewFromFn(() => h('p', null, 'old'));
     const handle = renderer.mount(view1, container);
     expect(container.innerHTML).toBe('<p>old</p>');
 
-    const view2 = renderer.createViewFromFn(() => renderer.h('p', null, 'new'));
+    const view2 = renderer.createViewFromFn(() => h('p', null, 'new'));
     renderer.replace(handle, view2);
     expect(container.innerHTML).toBe('<p>new</p>');
   });
@@ -61,11 +60,11 @@ describe('vdomRenderer strategy', () => {
     const container = document.createElement('div');
     let text = 'first';
 
-    const view1 = renderer.createViewFromFn(() => renderer.h('div', null, 'original'));
+    const view1 = renderer.createViewFromFn(() => h('div', null, 'original'));
     const handle = renderer.mount(view1, container);
     expect(container.innerHTML).toBe('<div>original</div>');
 
-    const view2 = renderer.createViewFromFn(() => renderer.h('div', null, text));
+    const view2 = renderer.createViewFromFn(() => h('div', null, text));
     renderer.replace(handle, view2);
     expect(container.innerHTML).toBe('<div>first</div>');
 
@@ -78,7 +77,7 @@ describe('vdomRenderer strategy', () => {
     const renderer = vdomRenderer();
     const container = document.createElement('div');
 
-    const view = renderer.createViewFromFn(() => renderer.h('div', null, 'bye'));
+    const view = renderer.createViewFromFn(() => h('div', null, 'bye'));
     const handle = renderer.mount(view, container);
     expect(container.innerHTML).toBe('<div>bye</div>');
 

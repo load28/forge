@@ -1,5 +1,5 @@
 import type { Renderer, MountHandle, ComponentHandle, Props } from '@forge/core';
-import { h as createVNode, mount as mountVNode, patch as patchVNode, unmount as unmountVNode, type VNode, type VNodeChild } from '@forge/primitives';
+import { createVNode, mount as mountVNode, patch as patchVNode, unmount as unmountVNode, type VNode, type VNodeChild } from '@forge/primitives';
 
 interface VDOMMountHandle extends MountHandle {
   currentVNode: VNode | null;
@@ -11,15 +11,28 @@ export interface VDOMView {
 }
 
 export interface VDOMRenderer extends Renderer<VDOMView> {
-  h(tag: string | Function, props: Record<string, unknown> | null, ...children: VNodeChild[]): VNode;
   createViewFromFn(renderFn: () => VNode): VDOMView;
 }
 
-export function vdomRenderer(): VDOMRenderer {
-  function h(tag: string | Function, props: Record<string, unknown> | null, ...children: VNodeChild[]): VNode {
-    return createVNode(tag, props, ...children);
-  }
+/**
+ * VNode factory — creates virtual DOM nodes for the vdom rendering strategy.
+ * This is the public API for building VNode trees.
+ *
+ * @example
+ * ```ts
+ * import { h } from '@forge/strategies';
+ * const vnode = h('div', { class: 'app' }, h('span', null, 'hello'));
+ * ```
+ */
+export function h(
+  tag: string | Function | symbol,
+  props: Record<string, unknown> | null,
+  ...children: VNodeChild[]
+): VNode {
+  return createVNode(tag, props, ...children);
+}
 
+export function vdomRenderer(): VDOMRenderer {
   /**
    * A-VR-1: Typed component handle resolution.
    * The ComponentHandle from function-component strategy has a `factory` property.
@@ -89,5 +102,5 @@ export function vdomRenderer(): VDOMRenderer {
     }
   }
 
-  return { h, createView, createViewFromFn, mount, update, replace, unmount };
+  return { createView, createViewFromFn, mount, update, replace, unmount };
 }

@@ -90,6 +90,11 @@ export function createFramework(config: FrameworkConfig): Framework {
     props: Record<string, unknown> = {},
   ): ViewHandle {
     const compHandle = component.define(componentDef);
+    // P2: Instantiate component for lifecycle hooks and context
+    let instance: unknown = null;
+    if (component.instantiate) {
+      instance = component.instantiate(compHandle, props);
+    }
     const view = renderer.createView(compHandle, props);
 
     let mountHandle: MountHandle | null = null;
@@ -104,21 +109,39 @@ export function createFramework(config: FrameworkConfig): Framework {
       }
     });
 
+    // P2: Trigger onAttach lifecycle after mount
+    attachLifecycle(instance);
+
     return {
       replace(newComponentDef, newProps = {}) {
         // Dispose old reactive tracking
         currentDisposable?.dispose();
+        // P2: Destroy old component instance
+        if (instance && component.destroy) {
+          component.destroy(instance);
+        }
         // Delegate to Renderer primitives
         const newCompHandle = component.define(newComponentDef);
+        // P2: Instantiate new component
+        instance = null;
+        if (component.instantiate) {
+          instance = component.instantiate(newCompHandle, newProps);
+        }
         const newView = renderer.createView(newCompHandle, newProps);
         mountHandle = renderer.replace(mountHandle!, newView);
         // Re-establish reactive tracking for new component's signals
         currentDisposable = reactive.autorun(() => {
           renderer.update(mountHandle!);
         });
+        // P2: Trigger onAttach for new component
+        attachLifecycle(instance);
       },
       destroy() {
         currentDisposable?.dispose();
+        // P2: Destroy component instance (triggers onDetach hooks)
+        if (instance && component.destroy) {
+          component.destroy(instance);
+        }
         if (mountHandle) renderer.unmount(mountHandle);
       },
     };
@@ -273,6 +296,11 @@ export function createFramework(config: FrameworkConfig): Framework {
 
   /** ARCH-1: Register a plugin and call its install hook */
   function use(plugin: FrameworkPlugin): Framework {
+    // P7: Guard against duplicate plugin registration
+    if (plugins.some(p => p.name === plugin.name)) {
+      console.warn(`Forge: plugin "${plugin.name}" is already registered, skipping.`);
+      return framework;
+    }
     plugins.push(plugin);
     plugin.install?.(framework);
     return framework;

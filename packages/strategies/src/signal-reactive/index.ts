@@ -27,9 +27,11 @@ export function signalReactive(): SignalReactiveSystem {
     try {
       while (pendingEffects.size > 0) {
         if (++iterations > MAX_ITERATIONS) {
-          console.error('SignalReactive: maximum flush iterations exceeded');
           pendingEffects.clear();
-          break;
+          throw new Error(
+            'Forge: reactive flush loop exceeded maximum iterations (100). ' +
+            'This usually means a signal write inside an effect creates an infinite loop.'
+          );
         }
         const effects = [...pendingEffects];
         pendingEffects.clear();

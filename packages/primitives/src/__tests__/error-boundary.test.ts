@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { errorBoundary, tryCatchRender } from '../dom/error-boundary';
-import { h } from '../dom/vnode';
+import { createVNode as h } from '../dom/vnode';
 
 describe('error-boundary (DX-XC-1)', () => {
   it('should create an error boundary vnode with handler', () => {

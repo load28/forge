@@ -23,6 +23,8 @@ export interface VNode {
   el?: Node;
   /** P5: Pre-computed flag — true if any child has a key, avoids O(n) .some() per patch */
   _childrenHaveKeys?: boolean;
+  /** P1: Tracks the real parent element for Fragment VNodes (DocumentFragment empties on append) */
+  _parentEl?: Element;
 }
 
 /** Flatten nested children arrays and filter falsy values in a single pass (P11 optimization) */
@@ -49,7 +51,7 @@ export const SVG_TAGS = new Set([
   'textPath', 'desc', 'title', 'metadata',
 ]);
 
-export function h(
+export function createVNode(
   tag: string | Function | symbol,
   props: Record<string, unknown> | null,
   ...children: unknown[]

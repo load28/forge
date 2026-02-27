@@ -1,4 +1,4 @@
-export { h, VNODE_TYPE, SVG_TAGS, Fragment, type VNode, type VNodeChild } from './vnode';
+export { createVNode, VNODE_TYPE, SVG_TAGS, Fragment, type VNode, type VNodeChild } from './vnode';
 export { mount, patch, unmount, createDomPatcher, type DocumentLike } from './patch';
 export { errorBoundary, tryCatchRender, type ErrorHandler } from './error-boundary';
 // JSX types: import { ForgeJSX } from '@forge/primitives' for type-only usage

@@ -69,4 +69,47 @@ describe('hashRouter strategy', () => {
     disposable.dispose();
     router.destroy();
   });
+
+  // P3: Guard redirect should sync URL
+  it('should update hash when guard redirects', () => {
+    const router = hashRouter();
+    router.register({ path: '/admin', name: 'admin' });
+    router.register({ path: '/login', name: 'login' });
+
+    // Guard redirects /admin → /login
+    router.beforeEach((to) => {
+      if (to.path === '/admin') return '/login';
+    });
+
+    router.go('/admin');
+    // Trigger hashchange manually — happy-dom doesn't fire it synchronously
+    window.dispatchEvent(new Event('hashchange'));
+
+    // After redirect, hash should be /login
+    expect(window.location.hash).toBe('#/login');
+    router.destroy();
+  });
+
+  // P3: Guard cancellation should revert URL
+  it('should revert hash when guard cancels navigation', () => {
+    const router = hashRouter();
+    router.register({ path: '/home', name: 'home' });
+    router.register({ path: '/admin', name: 'admin' });
+
+    // Set initial route
+    router.go('/home');
+    window.dispatchEvent(new Event('hashchange'));
+
+    // Guard cancels navigation to /admin
+    router.beforeEach((to) => {
+      if (to.path === '/admin') return false;
+    });
+
+    router.go('/admin');
+    window.dispatchEvent(new Event('hashchange'));
+
+    // URL should revert to previous path
+    expect(window.location.hash).toBe('#/home');
+    router.destroy();
+  });
 });

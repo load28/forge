@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createFramework } from '@forge/core';
-import { signalReactive, vdomRenderer, hashRouter, functionComponent, routerView } from '../index';
+import { signalReactive, vdomRenderer, hashRouter, functionComponent, routerView, h } from '../index';
 
 describe('routerView plugin', () => {
   function setup() {
@@ -17,8 +17,8 @@ describe('routerView plugin', () => {
 
     const app = createFramework({ reactive, renderer, component, router });
     app.use(routerView([
-      { path: '/', component: () => () => renderer.h('div', null, 'home') },
-      { path: '/about', component: () => () => renderer.h('div', null, 'about') },
+      { path: '/', component: () => () => h('div', null, 'home') },
+      { path: '/about', component: () => () => h('div', null, 'about') },
     ]));
 
     const container = document.createElement('div');
@@ -35,8 +35,8 @@ describe('routerView plugin', () => {
 
     const app = createFramework({ reactive, renderer, component, router });
     app.use(routerView([
-      { path: '/', component: () => () => renderer.h('div', null, 'Home Page') },
-      { path: '/counter', component: () => () => renderer.h('div', null, 'Counter') },
+      { path: '/', component: () => () => h('div', null, 'Home Page') },
+      { path: '/counter', component: () => () => h('div', null, 'Counter') },
     ]));
 
     const container = document.createElement('div');
@@ -52,8 +52,8 @@ describe('routerView plugin', () => {
 
     const app = createFramework({ reactive, renderer, component, router });
     app.use(routerView([
-      { path: '/', component: () => () => renderer.h('div', null, 'Home') },
-      { path: '/other', component: () => () => renderer.h('div', null, 'Other') },
+      { path: '/', component: () => () => h('div', null, 'Home') },
+      { path: '/other', component: () => () => h('div', null, 'Other') },
     ]));
 
     const container = document.createElement('div');
@@ -74,7 +74,7 @@ describe('routerView plugin', () => {
 
     const app = createFramework({ reactive, renderer, component, router });
     app.use(routerView([
-      { path: '/', component: () => () => renderer.h('div', null, 'Home') },
+      { path: '/', component: () => () => h('div', null, 'Home') },
     ]));
 
     const container = document.createElement('div');
