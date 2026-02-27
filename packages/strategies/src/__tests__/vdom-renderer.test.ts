@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { vdomRenderer, h } from '../vdom-renderer/index';
+import { vdomRenderer } from '../vdom-renderer/index';
+import { h } from '../expression/factory';
 
 describe('vdomRenderer strategy', () => {
   it('should implement Renderer protocol', () => {
