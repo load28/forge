@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getSequence, diffKeys } from '../dom/diff';
+import { getSequence, diffKeys } from '../vdom-renderer/diff';
 
 describe('diff module (AR-01)', () => {
   describe('getSequence (LIS)', () => {

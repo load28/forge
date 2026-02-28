@@ -5,26 +5,18 @@
  */
 export const VNODE_TYPE = Symbol.for('forge.vnode');
 
-/**
- * Fragment symbol — renders children without a wrapper element (TC-02).
- * Similar to React.Fragment: https://react.dev/reference/react/Fragment
- * Usage: h(Fragment, null, child1, child2)
- */
-export const Fragment = Symbol.for('forge.fragment');
-
 export type VNodeChild = VNode | string | number | boolean | null | undefined;
 
+/**
+ * Pure IR (Intermediate Representation) for virtual DOM nodes.
+ * No DOM-specific fields — rendering strategies extend this as needed.
+ */
 export interface VNode {
   $$typeof: symbol;
   tag: string | Function | symbol;
   props: Record<string, unknown> | null;
   children: VNodeChild[];
   key?: string | number;
-  el?: Node;
-  /** P5: Pre-computed flag — true if any child has a key, avoids O(n) .some() per patch */
-  _childrenHaveKeys?: boolean;
-  /** P1: Tracks the real parent element for Fragment VNodes (DocumentFragment empties on append) */
-  _parentEl?: Element;
 }
 
 /** Flatten nested children arrays and filter falsy values in a single pass (P11 optimization) */
@@ -38,18 +30,6 @@ function flattenChildren(children: unknown[], result: VNodeChild[]): void {
     }
   }
 }
-
-/**
- * SVG tags that require createElementNS for correct rendering.
- * Based on SVG 2 spec: https://www.w3.org/TR/SVG2/
- */
-export const SVG_TAGS = new Set([
-  'svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse',
-  'g', 'text', 'tspan', 'defs', 'use', 'symbol', 'clipPath', 'mask',
-  'pattern', 'image', 'foreignObject', 'marker', 'linearGradient',
-  'radialGradient', 'stop', 'filter', 'animate', 'animateTransform',
-  'textPath', 'desc', 'title', 'metadata',
-]);
 
 export function createVNode(
   tag: string | Function | symbol,
@@ -66,15 +46,6 @@ export function createVNode(
     const { key: _, ...rest } = props;
     cleanProps = Object.keys(rest).length > 0 ? rest : null;
   }
-  // P5: Check for keyed children once during creation, not every patch
-  let hasKeyedChild = false;
-  for (let i = 0; i < flatChildren.length; i++) {
-    const child = flatChildren[i];
-    if (child != null && typeof child === 'object' && '$$typeof' in child && (child as VNode).key != null) {
-      hasKeyedChild = true;
-      break;
-    }
-  }
 
   return {
     $$typeof: VNODE_TYPE,
@@ -82,6 +53,5 @@ export function createVNode(
     props: cleanProps,
     children: flatChildren,
     key,
-    _childrenHaveKeys: hasKeyedChild,
   };
 }

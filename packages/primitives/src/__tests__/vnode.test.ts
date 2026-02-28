@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createVNode as h, VNODE_TYPE, type VNode } from '../dom/vnode';
+import { createVNode as h, VNODE_TYPE, type VNode } from '../ir/vnode';
 
 describe('VNode', () => {
   it('should create element vnode', () => {

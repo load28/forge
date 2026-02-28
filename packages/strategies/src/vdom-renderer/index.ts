@@ -1,6 +1,6 @@
 import type { Renderer, MountHandle, ComponentHandle, Props } from '@forge/core';
-import { createVNode, mount as mountVNode, patch as patchVNode, unmount as unmountVNode, type VNode, type VNodeChild } from '@forge/primitives';
-import { registerFactory } from '../expression/factory';
+import { createVNode, registerFactory, type VNode, type VNodeChild } from '@forge/primitives';
+import { mount as mountVNode, patch as patchVNode, unmount as unmountVNode } from './patch';
 
 interface VDOMMountHandle extends MountHandle {
   currentVNode: VNode | null;

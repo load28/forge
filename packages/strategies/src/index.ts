@@ -1,6 +1,9 @@
 export { signalReactive, type SignalReactiveSystem } from './signal-reactive/index';
 export { vdomRenderer, type VDOMRenderer, type VDOMView } from './vdom-renderer/index';
-export { h, Fragment, registerFactory } from './expression/factory';
+export { h, Fragment, registerFactory } from '@forge/primitives';
+export { errorBoundary, tryCatchRender, type ErrorHandler } from './vdom-renderer/error-boundary';
+export { mount, patch, unmount, createDomPatcher, type DocumentLike, type DOMVNode } from './vdom-renderer/patch';
+export { getSequence, diffKeys, type DiffOp } from './vdom-renderer/diff';
 export { hashRouter, type HashRouter, type HashRouteMatch } from './hash-router/index';
 export { functionComponent, type FnComponentSystem } from './function-component/index';
 export { routerView, type RouteComponent } from './router-view/index';

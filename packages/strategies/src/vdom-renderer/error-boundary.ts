@@ -1,5 +1,5 @@
 /**
- * DX-XC-1: Error boundary support for Forge's DOM rendering.
+ * DX-XC-1: Error boundary support for Forge's VDOM rendering strategy.
  *
  * Provides a mechanism to catch errors during rendering and display fallback UI.
  * Based on Vue 3's onErrorCaptured pattern and React's componentDidCatch/ErrorBoundary.
@@ -7,8 +7,8 @@
  * Vue 3 onErrorCaptured: https://vuejs.org/api/composition-api-lifecycle#onerrorcaptured
  * React Error Boundaries: https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary
  */
-import type { VNode, VNodeChild } from './vnode';
-import { createVNode, VNODE_TYPE } from './vnode';
+import type { VNode, VNodeChild } from '@forge/primitives';
+import { createVNode, VNODE_TYPE } from '@forge/primitives';
 
 export type ErrorHandler = (error: unknown) => VNode | null;
 

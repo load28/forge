@@ -1,5 +1,5 @@
 import type { Renderer, MountHandle, ComponentHandle, Props, Disposable, ReactiveSystem } from '@forge/core';
-import { registerFactory, Fragment } from '../expression/factory';
+import { registerFactory, Fragment } from '@forge/primitives';
 import { untracked, SVG_TAGS } from '@forge/primitives';
 
 // ---- Types ----

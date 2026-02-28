@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createVNode as h, Fragment } from '../dom/vnode';
-import { mount, patch, unmount } from '../dom/patch';
+import { createVNode as h, Fragment } from '@forge/primitives';
+import { mount, patch, unmount } from '../vdom-renderer/patch';
 
 describe('mount', () => {
   it('should mount text', () => {

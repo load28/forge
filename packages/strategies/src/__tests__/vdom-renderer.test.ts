@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { vdomRenderer } from '../vdom-renderer/index';
-import { h } from '../expression/factory';
+import { h } from '@forge/primitives';
 
 describe('vdomRenderer strategy', () => {
   it('should implement Renderer protocol', () => {

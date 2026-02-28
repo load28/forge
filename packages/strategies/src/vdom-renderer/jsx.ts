@@ -1,5 +1,5 @@
 /**
- * DX-01: JSX type declarations for Forge's virtual DOM.
+ * DX-01: JSX type declarations for Forge's VDOM rendering strategy.
  *
  * Provides TypeScript JSX support so `h()` calls type-check correctly.
  * Based on TypeScript's JSX handbook: https://www.typescriptlang.org/docs/handbook/jsx.html
@@ -10,7 +10,7 @@
  *   "jsxFactory": "h",
  *   "jsxFragmentFactory": "Fragment"
  */
-import type { VNode, VNodeChild } from './vnode';
+import type { VNode, VNodeChild } from '@forge/primitives';
 
 /** Event handler types for DOM elements */
 type EventHandler<E extends Event = Event> = (event: E) => void;
@@ -201,7 +201,7 @@ interface SVGAttributes extends HTMLAttributes {
  *
  * To enable JSX support, add to a global.d.ts file:
  * ```ts
- * import type { ForgeIntrinsicElements } from '@forge/primitives';
+ * import type { ForgeIntrinsicElements } from '@forge/strategies/vdom-renderer/jsx';
  * declare namespace JSX {
  *   interface IntrinsicElements extends ForgeIntrinsicElements {}
  *   type Element = import('@forge/primitives').VNode;

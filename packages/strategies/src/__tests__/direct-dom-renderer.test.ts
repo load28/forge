@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { directDomRenderer } from '../direct-dom-renderer/index';
 import { signalReactive } from '../signal-reactive/index';
-import { h, Fragment } from '../expression/factory';
+import { h, Fragment } from '@forge/primitives';
 
 function setup() {
   const reactive = signalReactive();

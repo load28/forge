@@ -1,5 +1,14 @@
-import { type VNode, type VNodeChild, VNODE_TYPE, SVG_TAGS, Fragment } from './vnode';
+import { type VNode as BaseVNode, type VNodeChild, VNODE_TYPE, SVG_TAGS, Fragment } from '@forge/primitives';
 import { getSequence } from './diff';
+
+/** VDOM reconciliation-specific extension of pure VNode IR with DOM rendering fields */
+export interface DOMVNode extends BaseVNode {
+  el?: Node;
+  _childrenHaveKeys?: boolean;
+  _parentEl?: Element;
+}
+
+type VNode = DOMVNode;
 
 // ---- Security: XSS Prevention ----
 // Based on OWASP XSS Prevention Cheat Sheet and React's sanitization patterns.
@@ -519,10 +528,10 @@ export interface DocumentLike {
  * Enables SSR environments to provide a virtual document implementation.
  *
  * Browser usage (default):
- *   import { mount, patch, unmount } from '@forge/primitives';
+ *   import { mount, patch, unmount } from './patch';
  *
  * SSR usage:
- *   import { createDomPatcher } from '@forge/primitives';
+ *   import { createDomPatcher } from './patch';
  *   const { mount, patch, unmount } = createDomPatcher(ssrDocument);
  */
 export function createDomPatcher(doc: DocumentLike) {
